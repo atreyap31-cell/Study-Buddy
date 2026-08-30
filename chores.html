@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chore Chart — Study Buddy</title>
+<meta name="theme-color" content="#5b6cff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧹</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/common.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="mark">🚀</span> Study Buddy</a>
+    <nav class="tabs" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="timer.html">⏱️ Timer</a>
+      <a href="chores.html">🧹 Chores</a>
+      <a href="homework.html">📚 Homework</a>
+    </nav>
+    <div class="topbar-right">
+      <button class="credit-chip" id="creditChip">🪙 0 credits</button>
+      <select class="profile" id="profileSelect" aria-label="Who is using this?"></select>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1 style="margin-top:22px">🧹 Chore Chart</h1>
+
+  <section class="card">
+    <div class="spread">
+      <div class="row">
+        <button class="ghost tiny" id="prevDay" aria-label="Previous day">◀</button>
+        <div>
+          <div style="font-weight:800" id="dayLabel">Today</div>
+          <div class="muted" id="dayDate"></div>
+        </div>
+        <button class="ghost tiny" id="nextDay" aria-label="Next day">▶</button>
+        <button class="ghost tiny" id="todayBtn">Today</button>
+      </div>
+      <div class="badge coin" id="dayEarned">0 / 0 credits</div>
+    </div>
+    <div class="progress"><div id="dayProgress" style="width:0%"></div></div>
+    <div id="todayList" style="margin-top:16px"></div>
+  </section>
+
+  <section class="card">
+    <div class="spread"><h2>🎁 Reward Shop</h2><span class="muted">Spend your credits here</span></div>
+    <div id="rewardList"></div>
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;font-weight:800;color:var(--ink-soft)">➕ Add a reward</summary>
+      <form class="row" id="rewardForm" style="margin-top:12px;align-items:flex-end">
+        <div class="field" style="flex:0 0 76px"><label for="rEmoji">Icon</label><input id="rEmoji" value="🍦" maxlength="4"></div>
+        <div class="field" style="flex:2 1 220px"><label for="rName">Reward</label><input id="rName" placeholder="e.g. 30 min of video games" required maxlength="60"></div>
+        <div class="field" style="flex:0 0 130px"><label for="rCost">Costs</label><input id="rCost" type="number" min="1" max="9999" value="50" required></div>
+        <div class="field" style="flex:0 0 auto"><button class="pink" type="submit">Add reward</button></div>
+      </form>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>📋 All chores</h2>
+    <form class="row" id="choreForm" style="align-items:flex-end">
+      <div class="field" style="flex:0 0 76px"><label for="cEmoji">Icon</label><input id="cEmoji" value="🧽" maxlength="4"></div>
+      <div class="field" style="flex:2 1 220px"><label for="cName">Chore</label><input id="cName" placeholder="e.g. Make the bed" required maxlength="60"></div>
+      <div class="field" style="flex:0 0 120px"><label for="cCredits">Credits</label><input id="cCredits" type="number" min="0" max="999" value="10" required></div>
+      <div class="field" style="flex:0 0 170px"><label for="cType">When</label>
+        <select id="cType">
+          <option value="daily">Every day</option>
+          <option value="days">Certain days</option>
+          <option value="once">One time only</option>
+        </select>
+      </div>
+      <div class="field" id="daysField" hidden style="flex:1 1 100%">
+        <label>Which days?</label>
+        <div class="chips" id="dayChips"></div>
+      </div>
+      <div class="field" id="dateField" hidden style="flex:0 0 190px"><label for="cDate">On this date</label><input id="cDate" type="date"></div>
+      <div class="field" style="flex:0 0 auto"><button type="submit">➕ Add chore</button></div>
+    </form>
+    <div id="choreList" style="margin-top:10px"></div>
+  </section>
+
+  <div class="grid three">
+    <div class="stat"><div class="num" id="statWeek">0</div><div class="lab">chores done this week</div></div>
+    <div class="stat"><div class="num" id="statEarned">0</div><div class="lab">credits earned ever</div></div>
+    <div class="stat"><div class="num" id="statSpent">0</div><div class="lab">credits spent</div></div>
+  </div>
+
+  <details class="help">
+    <summary>🧾 Credit history</summary>
+    <div id="historyList" style="margin-top:12px"></div>
+  </details>
+</main>
+
+<footer class="site">Chores reset by themselves every day — yesterday's ticks stay in the history.</footer>
+<div id="toaster"></div>
+<script src="assets/chores.js"></script>
+</body>
+</html>

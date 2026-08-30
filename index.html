@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Buddy — Home</title>
+<meta name="description" content="A kid-friendly study hub: a 20/5 Pomodoro timer, a chore chart that pays credits, and a live homework countdown.">
+<meta name="theme-color" content="#5b6cff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/common.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="mark">🚀</span> Study Buddy</a>
+    <nav class="tabs" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="timer.html">⏱️ Timer</a>
+      <a href="chores.html">🧹 Chores</a>
+      <a href="homework.html">📚 Homework</a>
+    </nav>
+    <div class="topbar-right">
+      <button class="credit-chip" id="creditChip" title="Credits earned — spend them on the Chores page">🪙 0 credits</button>
+      <select class="profile" id="profileSelect" aria-label="Who is using this?"></select>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="big-emoji" aria-hidden="true">🚀</div>
+    <h1>Hi <span id="heroName">friend</span>! Ready to get stuff done?</h1>
+    <p>Pick one of the three helpers below. Everything you type is saved right here on this device.</p>
+  </section>
+
+  <div class="grid three" style="margin-top: 8px;">
+    <a class="tile" href="timer.html">
+      <span class="emoji" aria-hidden="true">⏱️</span>
+      <h2>Focus Timer</h2>
+      <p>20 minutes of homework, then a colorful 5-minute brain break. Earn credits for every session!</p>
+    </a>
+    <a class="tile" href="chores.html">
+      <span class="emoji" aria-hidden="true">🧹</span>
+      <h2>Chore Chart</h2>
+      <p>Chores on a schedule. Tick one off, collect credits, then trade them for rewards.</p>
+    </a>
+    <a class="tile" href="homework.html">
+      <span class="emoji" aria-hidden="true">📚</span>
+      <h2>Homework Countdown</h2>
+      <p>Add assignments and watch a live countdown of the days and hours you have left.</p>
+    </a>
+  </div>
+
+  <section class="card" id="todayCard">
+    <div class="spread"><h2>📌 Today at a glance</h2><span class="muted" id="todayDate"></span></div>
+    <div class="grid three" id="todayStats"></div>
+    <div id="todayLists" style="margin-top:16px"></div>
+  </section>
+
+  <section class="card">
+    <h2>⚙️ Your data</h2>
+    <p>Everything lives in this browser only — nothing is uploaded anywhere. Use a backup file to move it to another computer or tablet.</p>
+    <div class="row">
+      <button class="ghost" id="exportBtn">💾 Save a backup</button>
+      <button class="ghost" id="importBtn">📂 Load a backup</button>
+      <button class="ghost red" id="wipeBtn" style="background:var(--red);color:#fff;box-shadow:0 4px 0 #d33955">🗑️ Erase everything</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </section>
+</main>
+
+<footer class="site">Made for focused kids 💪 — works offline, saves to this browser.</footer>
+<div id="toaster"></div>
+
+<script>
+(function () {
+  const { $, me, dayKey, prettyDay, escapeHtml } = SB;
+  const p = me();
+  $('#heroName').textContent = p.name;
+  $('#todayDate').textContent = prettyDay(dayKey());
+
+  const today = dayKey();
+  const doneToday = SB.data.profiles.find(x => x.id === p.id).done[today] || {};
+  const dow = new Date().getDay();
+  const dueToday = p.chores.filter(c =>
+    c.type === 'daily' ||
+    (c.type === 'days' && (c.days || []).includes(dow)) ||
+    (c.type === 'once' && c.date === today)
+  );
+  const choresLeft = dueToday.filter(c => !doneToday[c.id]).length;
+  const openHw = p.homework.filter(h => !h.done);
+  const soonest = openHw.slice().sort((a, b) => new Date(a.due) - new Date(b.due))[0];
+  const focusToday = p.focus.todayKey === today ? p.focus.todaySessions : 0;
+
+  $('#todayStats').innerHTML = [
+    ['🍅', focusToday, focusToday === 1 ? 'focus session today' : 'focus sessions today'],
+    ['🧹', choresLeft, choresLeft === 1 ? 'chore left today' : 'chores left today'],
+    ['📚', openHw.length, openHw.length === 1 ? 'assignment to do' : 'assignments to do']
+  ].map(([e, n, l]) => `<div class="stat"><div class="num">${e} ${n}</div><div class="lab">${l}</div></div>`).join('');
+
+  let html = '';
+  if (soonest) {
+    const ms = new Date(soonest.due) - new Date();
+    const hrs = Math.floor(Math.abs(ms) / 36e5);
+    const when = ms < 0 ? 'was due ' + hrs + 'h ago' :
+      hrs >= 48 ? 'due in ' + Math.floor(hrs / 24) + ' days' : 'due in ' + hrs + ' hours';
+    html += `<div class="item"><span style="font-size:1.6rem">⏳</span><div class="grow">
+      <div class="title">${escapeHtml(soonest.title)}</div>
+      <div class="muted">Next up — ${when}</div></div>
+      <a class="btn ghost tiny" href="homework.html">Open</a></div>`;
+  }
+  if (choresLeft) {
+    html += `<div class="item"><span style="font-size:1.6rem">🧹</span><div class="grow">
+      <div class="title">${choresLeft} chore${choresLeft === 1 ? '' : 's'} waiting</div>
+      <div class="muted">Worth ${dueToday.filter(c => !doneToday[c.id]).reduce((s, c) => s + (c.credits || 0), 0)} credits today</div></div>
+      <a class="btn ghost tiny" href="chores.html">Open</a></div>`;
+  }
+  if (!html) html = '<div class="empty"><span class="big-emoji">🎉</span>Nothing overdue. Start a focus session or add something new!</div>';
+  $('#todayLists').innerHTML = html;
+
+  $('#exportBtn').onclick = SB.exportData;
+  $('#importBtn').onclick = () => $('#importFile').click();
+  $('#importFile').onchange = e => { if (e.target.files[0]) SB.importData(e.target.files[0]); };
+  $('#wipeBtn').onclick = () => {
+    SB.confirmBox('Erase everything?', 'All people, chores, credits and homework on this browser are deleted. This cannot be undone — save a backup first if you are not sure.', 'Erase it all', true)
+      .then(yes => {
+        if (!yes) return;
+        localStorage.removeItem('studyBuddy.v1');
+        localStorage.removeItem('studyBuddy.timerRun');
+        location.reload();
+      });
+  };
+})();
+</script>
+</body>
+</html>

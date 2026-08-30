@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homework Countdown — Study Buddy</title>
+<meta name="theme-color" content="#5b6cff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/common.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="mark">🚀</span> Study Buddy</a>
+    <nav class="tabs" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="timer.html">⏱️ Timer</a>
+      <a href="chores.html">🧹 Chores</a>
+      <a href="homework.html">📚 Homework</a>
+    </nav>
+    <div class="topbar-right">
+      <button class="credit-chip" id="creditChip">🪙 0 credits</button>
+      <select class="profile" id="profileSelect" aria-label="Who is using this?"></select>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1 style="margin-top:22px">📚 Homework Countdown</h1>
+
+  <section class="card">
+    <h2>➕ Add an assignment</h2>
+    <form id="hwForm">
+      <div class="row" style="align-items:flex-end">
+        <div class="field" style="flex:2 1 260px"><label for="hTitle">What is it?</label>
+          <input id="hTitle" placeholder="e.g. Book report on Chapter 4" required maxlength="90"></div>
+        <div class="field" style="flex:1 1 150px"><label for="hSubject">Subject</label>
+          <input id="hSubject" list="subjects" placeholder="Math" maxlength="30">
+          <datalist id="subjects">
+            <option>Math</option><option>Reading</option><option>Science</option>
+            <option>Writing</option><option>History</option><option>Spanish</option><option>Art</option>
+          </datalist>
+        </div>
+        <div class="field" style="flex:0 0 175px"><label for="hDate">Due date</label><input id="hDate" type="date" required></div>
+        <div class="field" style="flex:0 0 140px"><label for="hTime">Due time</label><input id="hTime" type="time" value="08:00" required></div>
+      </div>
+      <div class="spread">
+        <div class="chips" id="quickChips">
+          <button class="chip" type="button" data-quick="0">Tonight</button>
+          <button class="chip" type="button" data-quick="1">Tomorrow</button>
+          <button class="chip" type="button" data-quick="3">In 3 days</button>
+          <button class="chip" type="button" data-quick="7">Next week</button>
+        </div>
+        <button type="submit">📌 Add to countdown</button>
+      </div>
+    </form>
+  </section>
+
+  <div class="grid three">
+    <div class="stat"><div class="num" id="statOpen">0</div><div class="lab">to do</div></div>
+    <div class="stat"><div class="num" id="statSoon">0</div><div class="lab">due in 48 hours</div></div>
+    <div class="stat"><div class="num" id="statLate">0</div><div class="lab">past due</div></div>
+  </div>
+
+  <section class="card">
+    <div class="spread">
+      <h2 style="margin:0">⏳ Countdown</h2>
+      <div class="chips" id="filterChips">
+        <button class="chip on" data-filter="open">To do</button>
+        <button class="chip" data-filter="soon">Due soon</button>
+        <button class="chip" data-filter="done">Finished</button>
+        <button class="chip" data-filter="all">Everything</button>
+      </div>
+    </div>
+    <div id="hwList" style="margin-top:16px"></div>
+  </section>
+
+  <details class="help">
+    <summary>💡 How this works</summary>
+    <p style="margin-top:10px">Type an assignment and its due date. The clock updates every second so you always know exactly how long is left.
+    Green means you have time, yellow means it is getting close, red means it is due within a day (or already late).
+    Ticking one off gives you <b>10 credits</b> to spend in the Reward Shop, and un-ticking takes them back.</p>
+  </details>
+</main>
+
+<footer class="site">Everything saves automatically to this browser.</footer>
+<div id="toaster"></div>
+<script src="assets/homework.js"></script>
+</body>
+</html>
