@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendar — Study Buddy</title>
+<meta name="theme-color" content="#5b6cff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/common.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="mark">🚀</span> Study Buddy</a>
+    <nav class="tabs" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="timer.html">⏱️ Timer</a>
+      <a href="chores.html">🧹 Chores</a>
+      <a href="homework.html">📚 Homework</a>
+      <a href="calendar.html">📅 Calendar</a>
+    </nav>
+    <div class="topbar-right">
+      <button class="credit-chip" id="creditChip">🪙 0 credits</button>
+      <select class="profile" id="profileSelect" aria-label="Who is using this?"></select>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1 style="margin-top:22px">📅 The next two weeks</h1>
+  <p>Tap any day to see exactly what is on it. <span class="key-dot chore"></span> chores · <span class="key-dot hw"></span> homework.</p>
+
+  <section class="card">
+    <div class="cal-grid" id="calGrid"></div>
+  </section>
+
+  <section class="card" id="dayCard">
+    <div class="spread">
+      <div>
+        <h2 style="margin:0" id="dayTitle">Today</h2>
+        <div class="muted" id="daySub"></div>
+      </div>
+      <div class="row">
+        <button class="ghost tiny" id="calPrev">◀</button>
+        <button class="ghost tiny" id="calToday">Today</button>
+        <button class="ghost tiny" id="calNext">▶</button>
+      </div>
+    </div>
+    <div class="progress"><div id="dayBar" style="width:0%"></div></div>
+    <div id="dayDetail" style="margin-top:16px"></div>
+  </section>
+
+  <details class="help">
+    <summary>💡 What shows up here</summary>
+    <p style="margin-top:10px">Every chore scheduled for that day, and every assignment due that day — including repeating homework
+    like reading every night or a spelling test every Friday. You can tick things off straight from this page and the
+    credits land the same way they do on the other pages.</p>
+  </details>
+</main>
+
+<footer class="site">Two weeks ahead is usually all a school week needs.</footer>
+<div id="toaster"></div>
+<script src="assets/calendar.js"></script>
+</body>
+</html>

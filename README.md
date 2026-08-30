@@ -6,13 +6,15 @@ A kid-friendly study site with three tools, all in one place:
 | --- | --- |
 | ⏱️ **Focus Timer** (`timer.html`) | 20 minutes of homework focus, then a full-screen, colorful 5-minute brain break with confetti and a rotating list of break ideas. Every length is editable. Earns credits. |
 | 🧹 **Chore Chart** (`chores.html`) | Add your own chores on a schedule (every day / certain weekdays / one time), edit or pause them any time. Tick one off to earn credits, then spend them in the Reward Shop you built. |
-| 📚 **Homework Countdown** (`homework.html`) | Type in assignments and due dates and watch a live countdown of days, hours, minutes and seconds. |
+| 📚 **Homework Countdown** (`homework.html`) | Assignments with a live countdown of days, hours, minutes and seconds — one-off *or* repeating (every day, or chosen days each week). Each one is worth however many credits you say. |
+| 📅 **Calendar** (`calendar.html`) | The next 14 days at a glance. Tap a day to see every chore and assignment on it, and tick things off right there. |
 
 Everything is plain HTML/CSS/JavaScript — no build step, no server, no account.
 All data is saved in the browser's `localStorage` on that device.
 
 ## Making it yours
 
+- **Homework** — "How often?" on the add form sets whether an assignment happens once, every day, or on chosen days each week; the **Credits** box sets what finishing it is worth. Repeating work ticks off one day at a time: finish tonight's reading and the countdown rolls to tomorrow's. The 🔁 Repeating filter lists everything on a schedule.
 - **Chores** — the "All chores" card on the chore page adds one; the ✏️ button on any chore edits its icon, name, credit value and whole schedule; ⏸️ pauses it (off the daily list, history kept); 🗑️ deletes it with an undo.
 - **Rewards** — "➕ Add a reward" creates one, ✏️ re-prices or renames it, 🗑️ removes it. Set the costs to whatever feels right; credits are only worth what you say they are.
 - **Timer** — open "⚙️ Change the timer" for one-tap presets (10/2, 20/5, 25/5, 45/10), or type any focus / break / long-break length, how many sessions earn a long break, and how many credits a finished session pays. "↩️ Back to 20 / 5" undoes any experiment.
@@ -22,7 +24,7 @@ All data is saved in the browser's `localStorage` on that device.
 
 - **Saves automatically** — close the tab, come back later, everything is still there (the focus timer even keeps counting through a page reload).
 - **Multiple kids** — the dropdown in the header switches between people; each one has their own chores, credits and homework.
-- **Credits system** — finished focus sessions (5), chores (whatever you set) and assignments (10) all pay credits. Redeem them for rewards you define yourself.
+- **Credits system** — finished focus sessions, chores and assignments all pay credits, and you set the value of each one. Redeem them for rewards you define yourself.
 - **Undo** on almost every action (ticking a chore, deleting, finishing homework).
 - **Dark mode** toggle, big touch-friendly buttons, keyboard shortcuts on the timer (`space` / `R` / `S`).
 - **Backup & restore** — export a JSON file from the home page and load it on another device.
@@ -59,12 +61,14 @@ Then open <http://localhost:8080>. (Opening the files directly with `file://` mo
 index.html        home / kid dashboard / backup tools
 timer.html        Pomodoro focus timer + break overlay
 chores.html       chore schedule, credits, reward shop
-homework.html     assignment countdowns
+homework.html     assignment countdowns (one-off + repeating)
+calendar.html     two-week calendar, day by day
 assets/style.css  all styling (light + dark themes)
 assets/common.js  storage, profiles, credits, toasts, sound
 assets/timer.js   timer logic and the break animation
 assets/chores.js  chore scheduling and rewards
 assets/homework.js countdown logic
+assets/calendar.js two-week calendar
 ```
 
 ## Changing the defaults

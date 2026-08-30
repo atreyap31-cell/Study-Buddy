@@ -17,7 +17,8 @@
       done: {},            // { 'YYYY-MM-DD': { choreId: true } }
       rewards: [],         // {id, name, emoji, cost}
       log: [],             // {id, at, kind:'earn'|'spend', amount, note}
-      homework: [],        // {id, title, subject, due(ISO), done, doneAt, created}
+      homework: [],        // {id, title, subject, credits, repeat:'once'|'daily'|'days', days[], time, due(ISO), done, doneAt}
+      hwDone: {},          // { 'YYYY-MM-DD': { homeworkId: {at} } }  — for repeating work
       focus: { totalSessions: 0, todayKey: '', todaySessions: 0, streakDays: 0, lastDay: '' }
     };
   }
@@ -53,6 +54,9 @@
       data.profiles = data.profiles.map(p => {
         const merged = Object.assign(blankProfile(), p);
         merged.focus = Object.assign(blankProfile().focus, p.focus || {});
+        merged.homework = merged.homework.map(h => Object.assign({
+          credits: 10, repeat: 'once', days: [], time: '08:00'
+        }, h));
         return merged;
       });
       if (!data.profiles.some(p => p.id === data.activeProfile)) data.activeProfile = data.profiles[0].id;
@@ -132,6 +136,91 @@
     }
     host.appendChild(el);
     setTimeout(() => el.remove(), ms || (actionLabel ? 6500 : 3000));
+  }
+
+  /* ---------- scheduling: one place that decides what is due when ---------- */
+  const DEFAULT_HW_CREDITS = 10;
+
+  function choreDueOn(chore, date) {
+    if (chore.paused) return false;
+    if (chore.type === 'daily') return true;
+    if (chore.type === 'days') return (chore.days || []).includes(date.getDay());
+    return chore.date === dayKey(date);
+  }
+  function choreDone(p, chore, key) { return !!(p.done[key] || {})[chore.id]; }
+  function toggleChore(chore, key) {
+    const p = me();
+    p.done[key] = p.done[key] || {};
+    const wasDone = !!p.done[key][chore.id];
+    if (wasDone) {
+      delete p.done[key][chore.id];
+      addCredits(+chore.credits || 0, 'Undo: ' + chore.name, 'spend');
+    } else {
+      p.done[key][chore.id] = { at: Date.now() };
+      addCredits(+chore.credits || 0, chore.name);
+    }
+    save();
+    return !wasDone;
+  }
+
+  function hwOccursOn(item, date) {
+    if (item.repeat === 'daily') return true;
+    if (item.repeat === 'days') return (item.days || []).includes(date.getDay());
+    return dayKey(new Date(item.due)) === dayKey(date);
+  }
+  function hwWhen(item, date) {          // the exact moment this occurrence is due
+    if (item.repeat === 'once' || !item.repeat) return new Date(item.due);
+    const [hh, mm] = (item.time || '08:00').split(':').map(Number);
+    const d = new Date(date);
+    d.setHours(hh || 0, mm || 0, 0, 0);
+    return d;
+  }
+  function hwDone(item, key) {
+    const p = me();
+    if (item.repeat === 'once' || !item.repeat) return !!item.done;
+    return !!(p.hwDone[key] || {})[item.id];
+  }
+  function toggleHw(item, key) {
+    const p = me();
+    const amount = item.credits == null ? DEFAULT_HW_CREDITS : +item.credits;
+    let nowDone;
+    if (item.repeat === 'once' || !item.repeat) {
+      item.done = !item.done;
+      item.doneAt = item.done ? Date.now() : null;
+      nowDone = item.done;
+    } else {
+      p.hwDone[key] = p.hwDone[key] || {};
+      nowDone = !p.hwDone[key][item.id];
+      if (nowDone) p.hwDone[key][item.id] = { at: Date.now() };
+      else delete p.hwDone[key][item.id];
+    }
+    addCredits(amount, (nowDone ? 'Finished: ' : 'Reopened: ') + item.title, nowDone ? 'earn' : 'spend');
+    save();
+    return nowDone;
+  }
+  // the next occurrence still waiting to be done (may be in the past = overdue)
+  function hwNext(item) {
+    if (item.repeat === 'once' || !item.repeat) return item.done ? null : new Date(item.due);
+    const start = new Date();
+    for (let i = 0; i < 366; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      if (!hwOccursOn(item, d)) continue;
+      if (hwDone(item, dayKey(d))) continue;
+      return hwWhen(item, d);
+    }
+    return null;
+  }
+  function repeatText(item) {
+    const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    if (item.repeat === 'daily') return 'Every day';
+    if (item.repeat === 'days') {
+      const d = item.days || [];
+      if (!d.length) return 'No days picked';
+      if (d.length === 7) return 'Every day';
+      if (d.length === 5 && [1, 2, 3, 4, 5].every(x => d.includes(x))) return 'Every school day';
+      return 'Every ' + d.map(x => names[x]).join(', ');
+    }
+    return 'One time';
   }
 
   /* ---------- in-page dialog (nicer than prompt/confirm, and never blocked) ---------- */
@@ -364,6 +453,8 @@
     $, $$, uid, get data() { return data; }, me, save, load,
     dayKey, prettyDay, balance, addCredits, paintCredits,
     toast, beep, exportData, importData, applyTheme, blankProfile, modal, ask, confirmBox,
+    DEFAULT_HW_CREDITS, choreDueOn, choreDone, toggleChore,
+    hwOccursOn, hwWhen, hwDone, toggleHw, hwNext, repeatText,
     escapeHtml: s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
   };
 })();

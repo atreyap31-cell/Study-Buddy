@@ -22,6 +22,7 @@
       <a href="timer.html">⏱️ Timer</a>
       <a href="chores.html">🧹 Chores</a>
       <a href="homework.html">📚 Homework</a>
+      <a href="calendar.html">📅 Calendar</a>
     </nav>
     <div class="topbar-right">
       <button class="credit-chip" id="creditChip" title="Credits earned — spend them on the Chores page">🪙 0 credits</button>
@@ -86,15 +87,12 @@
 
   const today = dayKey();
   const doneToday = SB.data.profiles.find(x => x.id === p.id).done[today] || {};
-  const dow = new Date().getDay();
-  const dueToday = p.chores.filter(c => !c.paused && (
-    c.type === 'daily' ||
-    (c.type === 'days' && (c.days || []).includes(dow)) ||
-    (c.type === 'once' && c.date === today))
-  );
+  const now = new Date();
+  const dueToday = p.chores.filter(c => SB.choreDueOn(c, now));
   const choresLeft = dueToday.filter(c => !doneToday[c.id]).length;
-  const openHw = p.homework.filter(h => !h.done);
-  const soonest = openHw.slice().sort((a, b) => new Date(a.due) - new Date(b.due))[0];
+  const openHw = p.homework.map(h => ({ h: h, next: SB.hwNext(h) })).filter(x => x.next)
+    .sort((a, b) => a.next - b.next);
+  const soonest = openHw.length ? openHw[0] : null;
   const focusToday = p.focus.todayKey === today ? p.focus.todaySessions : 0;
 
   $('#todayStats').innerHTML = [
@@ -105,12 +103,12 @@
 
   let html = '';
   if (soonest) {
-    const ms = new Date(soonest.due) - new Date();
+    const ms = soonest.next - new Date();
     const hrs = Math.floor(Math.abs(ms) / 36e5);
     const when = ms < 0 ? 'was due ' + hrs + 'h ago' :
       hrs >= 48 ? 'due in ' + Math.floor(hrs / 24) + ' days' : 'due in ' + hrs + ' hours';
     html += `<div class="item"><span style="font-size:1.6rem">⏳</span><div class="grow">
-      <div class="title">${escapeHtml(soonest.title)}</div>
+      <div class="title">${escapeHtml(soonest.h.title)}</div>
       <div class="muted">Next up — ${when}</div></div>
       <a class="btn ghost tiny" href="homework.html">Open</a></div>`;
   }

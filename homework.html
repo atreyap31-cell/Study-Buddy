@@ -21,6 +21,7 @@
       <a href="timer.html">⏱️ Timer</a>
       <a href="chores.html">🧹 Chores</a>
       <a href="homework.html">📚 Homework</a>
+      <a href="calendar.html">📅 Calendar</a>
     </nav>
     <div class="topbar-right">
       <button class="credit-chip" id="creditChip">🪙 0 credits</button>
@@ -37,18 +38,32 @@
     <h2>➕ Add an assignment</h2>
     <form id="hwForm">
       <div class="row" style="align-items:flex-end">
-        <div class="field" style="flex:2 1 260px"><label for="hTitle">What is it?</label>
+        <div class="field" style="flex:2 1 240px"><label for="hTitle">What is it?</label>
           <input id="hTitle" placeholder="e.g. Book report on Chapter 4" required maxlength="90"></div>
-        <div class="field" style="flex:1 1 150px"><label for="hSubject">Subject</label>
+        <div class="field" style="flex:1 1 140px"><label for="hSubject">Subject</label>
           <input id="hSubject" list="subjects" placeholder="Math" maxlength="30">
           <datalist id="subjects">
             <option>Math</option><option>Reading</option><option>Science</option>
             <option>Writing</option><option>History</option><option>Spanish</option><option>Art</option>
           </datalist>
         </div>
-        <div class="field" style="flex:0 0 175px"><label for="hDate">Due date</label><input id="hDate" type="date" required></div>
-        <div class="field" style="flex:0 0 140px"><label for="hTime">Due time</label><input id="hTime" type="time" value="08:00" required></div>
+        <div class="field" style="flex:0 0 130px"><label for="hCredits">Credits</label>
+          <input id="hCredits" type="number" min="0" max="999" value="10"></div>
       </div>
+      <div class="row" style="align-items:flex-end">
+        <div class="field" style="flex:0 0 200px"><label for="hRepeat">How often?</label>
+          <select id="hRepeat">
+            <option value="once">Just once</option>
+            <option value="days">Certain days each week</option>
+            <option value="daily">Every day</option>
+          </select>
+        </div>
+        <div class="field" id="hDateField" style="flex:0 0 175px"><label for="hDate">Due date</label>
+          <input id="hDate" type="date"></div>
+        <div class="field" style="flex:0 0 140px"><label for="hTime">Due time</label>
+          <input id="hTime" type="time" value="08:00" required></div>
+      </div>
+      <div class="field" id="hDaysField" hidden><label>Which days?</label><div class="chips" id="hDayChips"></div></div>
       <div class="spread">
         <div class="chips" id="quickChips">
           <button class="chip" type="button" data-quick="0">Tonight</button>
@@ -73,6 +88,7 @@
       <div class="chips" id="filterChips">
         <button class="chip on" data-filter="open">To do</button>
         <button class="chip" data-filter="soon">Due soon</button>
+        <button class="chip" data-filter="repeat">🔁 Repeating</button>
         <button class="chip" data-filter="done">Finished</button>
         <button class="chip" data-filter="all">Everything</button>
       </div>
@@ -82,9 +98,12 @@
 
   <details class="help">
     <summary>💡 How this works</summary>
-    <p style="margin-top:10px">Type an assignment and its due date. The clock updates every second so you always know exactly how long is left.
-    Green means you have time, yellow means it is getting close, red means it is due within a day (or already late).
-    Ticking one off gives you <b>10 credits</b> to spend in the Reward Shop, and un-ticking takes them back.</p>
+    <p style="margin-top:10px">Type an assignment, choose how often it comes around, and set what it is worth.
+    The clock updates every second so you always know exactly how long is left — green means plenty of time,
+    yellow means it is getting close, red means within a day (or already late).</p>
+    <p><b>Repeating work</b> (reading every night, spelling every Friday) ticks off one day at a time:
+    finish today's and the countdown rolls on to the next one. Check the <b>🔁 Repeating</b> filter to see everything on a schedule,
+    and the <a href="calendar.html">📅 Calendar</a> to see it day by day.</p>
   </details>
 </main>
 

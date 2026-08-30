@@ -7,12 +7,7 @@
   let newDays = [1, 2, 3, 4, 5];       // weekday chips for the "certain days" option
 
   const keyOf = d => dayKey(d);
-  const isDue = (chore, d) => {
-    if (chore.paused) return false;
-    if (chore.type === 'daily') return true;
-    if (chore.type === 'days') return (chore.days || []).includes(d.getDay());
-    return chore.date === keyOf(d);
-  };
+  const isDue = (chore, d) => SB.choreDueOn(chore, d);
   const doneMap = k => { const p = me(); p.done[k] = p.done[k] || {}; return p.done[k]; };
 
   /* ---------- today card ---------- */
@@ -58,20 +53,15 @@
   }
 
   function tick(id) {
-    const p = me(), k = keyOf(viewDate), map = doneMap(k);
-    const chore = p.chores.find(c => c.id === id);
+    const chore = me().chores.find(c => c.id === id);
     if (!chore) return;
-    if (map[id]) {
-      delete map[id];
-      SB.addCredits(+chore.credits || 0, 'Undo: ' + chore.name, 'spend');
-      toast('↩️ Un-ticked "' + chore.name + '"');
-    } else {
-      map[id] = { at: Date.now() };
-      SB.addCredits(+chore.credits || 0, chore.name);
+    if (SB.toggleChore(chore, keyOf(viewDate))) {
       beep([880, 1180]);
-      toast('🎉 ' + chore.name + ' done! +' + (+chore.credits || 0) + ' credits', 'Undo', () => { tick(id); });
+      toast('🎉 ' + chore.name + ' done! +' + (+chore.credits || 0) + ' credits', 'Undo', () => tick(id));
+    } else {
+      toast('↩️ Un-ticked "' + chore.name + '"');
     }
-    save(); paintAll();
+    paintAll();
   }
 
   /* ---------- chore list ---------- */
