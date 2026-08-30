@@ -8,6 +8,7 @@
 
   const keyOf = d => dayKey(d);
   const isDue = (chore, d) => {
+    if (chore.paused) return false;
     if (chore.type === 'daily') return true;
     if (chore.type === 'days') return (chore.days || []).includes(d.getDay());
     return chore.date === keyOf(d);
@@ -82,10 +83,11 @@
         <span style="font-size:1.5rem" aria-hidden="true">${escapeHtml(c.emoji || '✅')}</span>
         <div class="grow">
           <div class="title">${escapeHtml(c.name)}</div>
-          <div class="muted">${scheduleText(c)}</div>
+          <div class="muted">${scheduleText(c)}${c.paused ? ' · ⏸️ paused' : ''}</div>
         </div>
         <span class="badge coin">🪙 ${+c.credits || 0}</span>
-        <button class="chip" data-editchore="${c.id}">✏️</button>
+        <button class="chip" data-editchore="${c.id}">✏️ Edit</button>
+        <button class="chip" data-pausechore="${c.id}">${c.paused ? '▶️ Resume' : '⏸️ Pause'}</button>
         <button class="chip" data-delchore="${c.id}">🗑️</button>
       </div>`).join('');
   }
@@ -113,6 +115,7 @@
         </div>
         <span class="badge coin">🪙 ${r.cost}</span>
         <button class="${can ? 'green' : 'ghost'} tiny" data-buy="${r.id}" ${can ? '' : 'disabled'}>Redeem</button>
+        <button class="chip" data-editreward="${r.id}">✏️</button>
         <button class="chip" data-delreward="${r.id}">🗑️</button>
       </div>`;
     }).join('');
@@ -158,10 +161,32 @@
 
   /* ---------- events ---------- */
   document.addEventListener('click', e => {
-    const t = e.target.closest('[data-tick],[data-buy],[data-delreward],[data-delchore],[data-editchore],[data-day]');
+    const t = e.target.closest('[data-tick],[data-buy],[data-delreward],[data-editreward],[data-delchore],[data-editchore],[data-pausechore],[data-day]');
     if (!t) return;
     if (t.dataset.tick) return tick(t.dataset.tick);
     if (t.dataset.buy) return redeem(t.dataset.buy);
+    if (t.dataset.pausechore) {
+      const c = me().chores.find(x => x.id === t.dataset.pausechore);
+      if (!c) return;
+      c.paused = !c.paused;
+      save(); paintAll();
+      return toast(c.paused ? '⏸️ "' + c.name + '" is off the list for now' : '▶️ "' + c.name + '" is back');
+    }
+    if (t.dataset.editreward) {
+      const r = me().rewards.find(x => x.id === t.dataset.editreward);
+      if (!r) return;
+      return SB.ask('Edit reward', [
+        { key: 'emoji', label: 'Icon', value: r.emoji || '🎁', maxlength: 4 },
+        { key: 'name', label: 'Reward', value: r.name, maxlength: 60 },
+        { key: 'cost', label: 'Cost in credits', value: r.cost, type: 'number', min: 1, max: 9999 }
+      ]).then(res => {
+        if (!res || !res.name.trim()) return;
+        r.name = res.name.trim();
+        r.emoji = res.emoji.trim() || r.emoji;
+        r.cost = Math.max(1, Math.round(+res.cost || r.cost));
+        save(); paintAll(); toast('✏️ Reward updated');
+      });
+    }
     if (t.dataset.day !== undefined) {
       const d = +t.dataset.day;
       newDays = newDays.includes(d) ? newDays.filter(x => x !== d) : newDays.concat(d).sort();
@@ -196,12 +221,21 @@
       SB.ask('Edit chore', [
         { key: 'emoji', label: 'Icon', value: c.emoji || '✅', maxlength: 4 },
         { key: 'name', label: 'Chore', value: c.name, maxlength: 60 },
-        { key: 'credits', label: 'Credits', value: c.credits, type: 'number', min: 0, max: 999 }
+        { key: 'credits', label: 'Credits', value: c.credits, type: 'number', min: 0, max: 999 },
+        { key: 'type', label: 'When', type: 'select', value: c.type,
+          options: [['daily', 'Every day'], ['days', 'Certain days'], ['once', 'One time only']] },
+        { key: 'days', label: 'Which days?', type: 'days', value: c.days || [], showIf: ['type', 'days'] },
+        { key: 'date', label: 'On this date', type: 'date', value: c.date || dayKey(), showIf: ['type', 'once'] }
       ]).then(res => {
         if (!res) return;
+        if (res.type === 'days' && !res.days.length) return toast('Pick at least one day of the week.');
+        if (res.type === 'once' && !res.date) return toast('Pick a date for a one-time chore.');
         c.name = res.name.trim() || c.name;
         c.emoji = res.emoji.trim() || c.emoji;
         c.credits = Math.max(0, Math.min(999, Math.round(+res.credits || 0)));
+        c.type = res.type;
+        c.days = res.type === 'days' ? res.days : [];
+        c.date = res.type === 'once' ? res.date : '';
         save(); paintAll(); toast('✏️ Updated');
       });
     }

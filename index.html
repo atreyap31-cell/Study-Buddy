@@ -68,7 +68,7 @@
     <div class="row">
       <button class="ghost" id="exportBtn">💾 Save a backup</button>
       <button class="ghost" id="importBtn">📂 Load a backup</button>
-      <button class="ghost red" id="wipeBtn" style="background:var(--red);color:#fff;box-shadow:0 4px 0 #d33955">🗑️ Erase everything</button>
+      <button class="red" id="wipeBtn">🗑️ Erase everything</button>
       <input type="file" id="importFile" accept="application/json,.json" hidden>
     </div>
   </section>
@@ -87,10 +87,10 @@
   const today = dayKey();
   const doneToday = SB.data.profiles.find(x => x.id === p.id).done[today] || {};
   const dow = new Date().getDay();
-  const dueToday = p.chores.filter(c =>
+  const dueToday = p.chores.filter(c => !c.paused && (
     c.type === 'daily' ||
     (c.type === 'days' && (c.days || []).includes(dow)) ||
-    (c.type === 'once' && c.date === today)
+    (c.type === 'once' && c.date === today))
   );
   const choresLeft = dueToday.filter(c => !doneToday[c.id]).length;
   const openHw = p.homework.filter(h => !h.done);

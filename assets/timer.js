@@ -1,7 +1,7 @@
 /* ===== Focus timer: 20 min work / 5 min colorful brain break ===== */
 (function () {
   'use strict';
-  const { $, me, save, dayKey, toast, beep } = SB;
+  const { $, $$, me, save, dayKey, toast, beep } = SB;
   const S = () => SB.data.settings;
   const RUN_KEY = 'studyBuddy.timerRun';
   const RING = 2 * Math.PI * 106;
@@ -209,6 +209,12 @@
   const numFields = ['focusMin', 'breakMin', 'longBreakMin', 'creditsPerSession'];
   function paintSettings() {
     numFields.forEach(k => { $('#' + k).value = S()[k]; });
+    $('#settingsSummary').textContent =
+      '⚙️ Change the timer — right now it is ' + S().focusMin + ' min focus / ' + S().breakMin + ' min break';
+    $$('#presetChips .chip').forEach(c => {
+      const [f, b] = c.dataset.preset.split(',').map(Number);
+      c.classList.toggle('on', S().focusMin === f && S().breakMin === b);
+    });
     $('#rounds').value = S().roundsBeforeLongBreak;
     $('#optSound').classList.toggle('on', S().sound);
     $('#optAutoBreak').classList.toggle('on', S().autoStartBreak);
@@ -224,13 +230,28 @@
       const v = Math.max(lo, Math.min(hi, Math.round(+e.target.value || 0)));
       S()[k] = v; e.target.value = v; save();
       if (!run.running) { run.left = fullMs(run.mode); saveRun(); }
-      paint();
+      paintSettings(); paint();
     });
   });
   $('#rounds').addEventListener('change', e => {
     S().roundsBeforeLongBreak = Math.max(2, Math.min(8, Math.round(+e.target.value || 4)));
-    e.target.value = S().roundsBeforeLongBreak; save(); paint();
+    e.target.value = S().roundsBeforeLongBreak; save(); paintSettings(); paint();
   });
+  function applyLengths(focus, brk) {
+    S().focusMin = focus;
+    S().breakMin = brk;
+    save();
+    if (!run.running) { run.left = fullMs(run.mode); saveRun(); }
+    paintSettings(); paint();
+    toast('⏱️ Now ' + focus + ' minutes of focus, ' + brk + ' minute' + (brk === 1 ? '' : 's') + ' of break');
+  }
+  $('#presetChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-preset]');
+    if (!b) return;
+    const [f, brk] = b.dataset.preset.split(',').map(Number);
+    applyLengths(f, brk);
+  });
+  $('#resetSettings').onclick = () => applyLengths(20, 5);
   $('#optSound').onclick = () => { S().sound = !S().sound; save(); paintSettings(); if (S().sound) beep([880]); };
   $('#optAutoBreak').onclick = () => { S().autoStartBreak = !S().autoStartBreak; save(); paintSettings(); };
   $('#optAutoFocus').onclick = () => { S().autoStartFocus = !S().autoStartFocus; save(); paintSettings(); };

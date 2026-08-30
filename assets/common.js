@@ -50,7 +50,11 @@
       const base = defaults();
       data.settings = Object.assign(base.settings, data.settings || {});
       if (!Array.isArray(data.profiles) || !data.profiles.length) return base;
-      data.profiles = data.profiles.map(p => Object.assign(blankProfile(), p));
+      data.profiles = data.profiles.map(p => {
+        const merged = Object.assign(blankProfile(), p);
+        merged.focus = Object.assign(blankProfile().focus, p.focus || {});
+        return merged;
+      });
       if (!data.profiles.some(p => p.id === data.activeProfile)) data.activeProfile = data.profiles[0].id;
       return data;
     } catch (err) {
@@ -133,45 +137,88 @@
   /* ---------- in-page dialog (nicer than prompt/confirm, and never blocked) ---------- */
   function modal(opts) {
     return new Promise(resolve => {
+      const fields = opts.fields || [];
       const back = document.createElement('div');
       back.id = 'modalBack';
       const box = document.createElement('div');
       box.className = 'modal';
       box.setAttribute('role', 'dialog');
       box.setAttribute('aria-modal', 'true');
-      const fields = opts.fields || [];
+
+      const fieldHtml = (f, i) => {
+        const id = 'mf' + i;
+        let control;
+        if (f.type === 'select') {
+          control = '<select id="' + id + '" data-key="' + f.key + '">' +
+            (f.options || []).map(o => '<option value="' + SBescape(o[0]) + '"' +
+              (String(o[0]) === String(f.value) ? ' selected' : '') + '>' + SBescape(o[1]) + '</option>').join('') +
+            '</select>';
+        } else if (f.type === 'days') {
+          const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          control = '<div class="chips" data-key="' + f.key + '">' + names.map((n, d) =>
+            '<button type="button" class="chip' + ((f.value || []).includes(d) ? ' on' : '') +
+            '" data-mday="' + d + '">' + n + '</button>').join('') + '</div>';
+        } else {
+          control = '<input id="' + id + '" data-key="' + f.key + '" type="' + (f.type || 'text') +
+            '" value="' + SBescape(f.value == null ? '' : f.value) + '"' +
+            (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') +
+            (f.maxlength ? ' maxlength="' + f.maxlength + '"' : '') + '>';
+        }
+        return '<div class="field" data-field="' + f.key + '"' +
+          (f.showIf ? ' data-showif="' + f.showIf[0] + '" data-showval="' + f.showIf[1] + '"' : '') + '>' +
+          '<label for="' + id + '">' + SBescape(f.label) + '</label>' + control + '</div>';
+      };
+
       box.innerHTML =
         '<h2>' + SBescape(opts.title || '') + '</h2>' +
         (opts.message ? '<p>' + SBescape(opts.message) + '</p>' : '') +
-        fields.map((f, i) =>
-          '<div class="field"><label for="mf' + i + '">' + SBescape(f.label) + '</label>' +
-          '<input id="mf' + i + '" type="' + (f.type || 'text') + '" value="' + SBescape(f.value == null ? '' : f.value) + '"' +
-          (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') +
-          (f.maxlength ? ' maxlength="' + f.maxlength + '"' : '') + '></div>').join('') +
+        fields.map(fieldHtml).join('') +
         '<div class="modal-actions">' +
         '<button class="ghost" data-mcancel>' + SBescape(opts.cancel || 'Cancel') + '</button>' +
         '<button class="' + (opts.danger ? 'red' : 'green') + '" data-mok>' + SBescape(opts.ok || 'OK') + '</button>' +
         '</div>';
       back.appendChild(box);
       document.body.appendChild(back);
-      const inputs = Array.from(box.querySelectorAll('input'));
-      const finish = value => { back.remove(); document.removeEventListener('keydown', onKey); resolve(value); };
-      const submit = () => {
+
+      // fields can appear and disappear as a dropdown changes (e.g. schedule type)
+      function syncConditional() {
+        box.querySelectorAll('[data-showif]').forEach(el => {
+          const driver = box.querySelector('[data-key="' + el.dataset.showif + '"]');
+          el.hidden = !driver || driver.value !== el.dataset.showval;
+        });
+      }
+      box.addEventListener('change', syncConditional);
+      box.addEventListener('click', e => {
+        const chip = e.target.closest('[data-mday]');
+        if (chip) chip.classList.toggle('on');
+      });
+      syncConditional();
+
+      const readValues = () => {
         const out = {};
-        fields.forEach((f, i) => { out[f.key] = inputs[i].value; });
-        finish(fields.length ? out : true);
+        fields.forEach(f => {
+          const el = box.querySelector('[data-key="' + f.key + '"]');
+          if (!el) return;
+          out[f.key] = f.type === 'days'
+            ? Array.from(el.querySelectorAll('.chip.on')).map(c => +c.dataset.mday)
+            : el.value;
+        });
+        return out;
       };
+      const finish = value => { back.remove(); document.removeEventListener('keydown', onKey); resolve(value); };
+      const submit = () => finish(fields.length ? readValues() : true);
       function onKey(e) {
         if (e.key === 'Escape') { e.preventDefault(); finish(null); }
-        else if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); submit(); }
+        else if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); submit(); }
       }
       box.querySelector('[data-mok]').onclick = submit;
       box.querySelector('[data-mcancel]').onclick = () => finish(null);
       back.addEventListener('mousedown', e => { if (e.target === back) finish(null); });
       document.addEventListener('keydown', onKey);
-      setTimeout(() => (inputs[0] || box.querySelector('[data-mok]')).focus(), 30);
+      setTimeout(() => (box.querySelector('input, select') || box.querySelector('[data-mok]')).focus(), 30);
     });
   }
+
   const SBescape = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ask = (title, fields, ok) => modal({ title: title, fields: fields, ok: ok || 'Save' });
   const confirmBox = (title, message, ok, danger) =>

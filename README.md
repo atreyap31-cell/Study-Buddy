@@ -4,12 +4,19 @@ A kid-friendly study site with three tools, all in one place:
 
 | Page | What it does |
 | --- | --- |
-| ⏱️ **Focus Timer** (`timer.html`) | 20 minutes of homework focus, then a full-screen, colorful 5-minute brain break with confetti and a rotating list of break ideas. Earns credits. |
-| 🧹 **Chore Chart** (`chores.html`) | Chores on a schedule (every day / certain weekdays / one time). Tick one off to earn credits, then spend them in the Reward Shop. |
+| ⏱️ **Focus Timer** (`timer.html`) | 20 minutes of homework focus, then a full-screen, colorful 5-minute brain break with confetti and a rotating list of break ideas. Every length is editable. Earns credits. |
+| 🧹 **Chore Chart** (`chores.html`) | Add your own chores on a schedule (every day / certain weekdays / one time), edit or pause them any time. Tick one off to earn credits, then spend them in the Reward Shop you built. |
 | 📚 **Homework Countdown** (`homework.html`) | Type in assignments and due dates and watch a live countdown of days, hours, minutes and seconds. |
 
 Everything is plain HTML/CSS/JavaScript — no build step, no server, no account.
 All data is saved in the browser's `localStorage` on that device.
+
+## Making it yours
+
+- **Chores** — the "All chores" card on the chore page adds one; the ✏️ button on any chore edits its icon, name, credit value and whole schedule; ⏸️ pauses it (off the daily list, history kept); 🗑️ deletes it with an undo.
+- **Rewards** — "➕ Add a reward" creates one, ✏️ re-prices or renames it, 🗑️ removes it. Set the costs to whatever feels right; credits are only worth what you say they are.
+- **Timer** — open "⚙️ Change the timer" for one-tap presets (10/2, 20/5, 25/5, 45/10), or type any focus / break / long-break length, how many sessions earn a long break, and how many credits a finished session pays. "↩️ Back to 20 / 5" undoes any experiment.
+- The three starter chores and rewards on first run are only examples — edit or delete them.
 
 ## Features
 
@@ -49,7 +56,7 @@ Then open <http://localhost:8080>. (Opening the files directly with `file://` mo
 ## Files
 
 ```
-index.html        home / dashboard / backup tools
+index.html        home / kid dashboard / backup tools
 timer.html        Pomodoro focus timer + break overlay
 chores.html       chore schedule, credits, reward shop
 homework.html     assignment countdowns
